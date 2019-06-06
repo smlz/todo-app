@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Todo-App Example</title>
+    <meta charset="utf-8">
+    <style>
+      @import url('https://fonts.googleapis.com/css?family=Lato|Ubuntu+Mono');
+      body {
+        font-family: 'Lato';
+      }
+      .remark-slide-content {
+        padding: 0.5em 3em 0.5em 3em;
+      }
+      h1 {
+        text-align: center;
+        font-size: 30px;
+      }
+      h1, h2, h3 {
+        font-family: 'Lato';
+        font-weight: normal;
+      }
+      .remark-slide-content {
+        font-size: 20px;
+      }
+      .remark-code, .remark-inline-code {
+        font-family: 'Ubuntu Mono';
+        font-size: 90%;
+      }
+      .footnote.bottom {
+        position: absolute;
+        bottom: 12px;
+        left: 20px;
+      }
+      .footnote.bottom img {
+        vertical-align: baseline;
+      }
+      .xsmall{
+        font-size: 12px;
+      }
+      .small {
+        font-size: 15px;
+      }
+      .smaller {
+        font-size: 20px;
+      }
+      .remark-slide-number {
+        font-size: 20px;
+        opacity: 1;
+      }
+      h4 {
+        margin-bottom: 5px;
+      }
+      h4 + pre {
+        margin-top: 5px;
+      }
+      td, th{
+        border: solid gray 2px;
+        padding: 3px;
+        text-align: left;
+      }
+      td:empty {
+        padding: 0;
+      }
+      .center table {
+        width: 700px;
+        border-collapse: collapse;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      code.remark-inline-code {
+        background-color: #F0F0F0;
+      }
+      div.center.middle code.remark-inline-code {
+        background-color: white;
+      }
+
+      @page {
+        size: 908px 681px;
+        /*size: 1210px 681px;*/
+        margin: 0;
+      }
+
+      @media print {
+        .remark-slide-scaler {
+          width: 100% !important;
+          height: 100% !important;
+          transform: scale(1) !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Eine TODO-App
+
+---
+
+## Inhalt
+
+1. Front-End
+
+2. Datenbank
+
+3. Back-End
+
+4. Verbinden von Front-End und Back-End
+
+
+---
+
+## Front-End initialisieren
+
+Ein Vue-Projekt anlegen:
+
+```bash
+vue create todo-ui
+```
+
+`default`-Preset auswählen und warten ...
+
+Projekt im Editor öffnen:
+```bash
+cd todo-ui
+code .
+```
+
+---
+## Front-End konfigurieren
+
+Die Konfigurationsdatei `vue.config.js` anlegen:
+
+```js
+// vue.config.js
+
+module.exports = {
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000/'
+      }
+    }
+  }
+}
+```
+
+Diese Einstellung leitet alle Anfragen auf `/api` an das Backend weiter, welches auf dem Port 3000 laufen wird.
+
+---
+## Front-End Template programmieren
+
+Wir brauchen ein bisschen HTML für das Template im `src/App.vue` File:
+```html
+<div id="app">
+  <h1>Todos</h1>
+  <input v-model="newTodo"
+    placeholder="Was sollte gemacht werden?"
+    @keyup.enter="addTodo"
+    @keyup.escape="newTodo=''">
+
+  <ul v-if="todos.length !== 0">
+    <li v-for="(todo, index) of todos"
+      :key="index"
+      @click="toggleTodo(todo)"
+      :class="{done: todo.done}">
+      {{todo.text}}
+      <button @click.stop="deleteTodo(index)">x</button>
+    </li>
+  </ul>
+  <p v-else>Keine Todos</p>
+  <small>Click um Status zu toggeln</small>
+</div>
+```
+
+(Inhalt beim `<template>`-Tag einfügen)
+---
+## Front-End JS programmieren
+
+... ein wenig JS im `script`-Tag:
+
+```js
+export default {
+  name: 'app',
+  data() {
+    return {
+      newTodo: '',
+      todos: []
+    }
+  },
+  methods: {
+    addTodo() {
+      this.todos.push({
+        text: this.newTodo,
+        done: false
+      })
+      this.newTodo = ''
+    },
+    toggleTodo(todo) {
+      todo.done = !todo.done
+    },
+    deleteTodo(index) {
+      this.todos.splice(index, 1)
+    }
+  }
+}
+```
+
+---
+## Front-End CSS programmieren
+
+... ein wenig CSS im `style`-Tag:
+
+```css
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+  margin-top: 20px;
+}
+.done {
+  text-decoration: line-through;
+}
+```
+
+---
+## Front-End starten
+
+Jetzt sind wir bereit das UI zu starten
+```bash
+npm run serve
+```
+
+... und im Browser zu betrachten:
+http://localhost:8080
+
+---
+## Back-End initialisieren
+
+Wir kreieren erst den Ordner für das Backend, und initialisieren es mit eine `package.json`-File:
+```bash
+cd ..
+mkdir todo-api
+cd todo-api
+npm init
+```
+
+Beim letzten Kommando können wir mit der Enter-Taste alle Defaulteinstellungen übernehmen.
+
+---
+## Datenbank konfigurieren
+
+Für den Datenbankzugriff brauchen wir zwei Pakete und das `knexfile.js`:
+```bash
+npm install --save knex sqlite3
+knex init
+```
+
+Der `development`-Eintrag im `knexfile.js` benötigt folgende Anpassungen:
+```js
+development: {
+  client: 'sqlite3',
+  connection: {
+    filename: 'db/dev.sqlite3'
+  },
+  migrations: {
+    directory: 'db/migrations'
+  },
+  seeds: {
+    directory: 'db/seeds'
+  },
+  useNullAsDefault: true,
+  pool: {
+    afterCreate: (conn, cb) => conn.run('PRAGMA foreign_keys = ON', cb)
+  }
+},
+```
+
+---
+## Datenbank Helpers
+
+Die zwei folgenden Helferlein sind praktisch.
+
+1\. Die Verbindung zur Datenbank in `db/knex.js`:
+
+```js
+const environment = process.env.ENVIRONMENT || 'development'
+const config = require('../knexfile.js')[environment];
+module.exports = require('knex')(config);
+```
+
+2\. Das REPL-Kommando mit Datenbankverbindung im `package.json`-File
+
+```json
+"scripts": {
+  "repl": "node -e \"let knex = require('./db/knex.js')\" --experimental-repl-await -i"
+},
+```
+
+---
+## Datenbankschema
+
+In einem initialen Migrationsfile erstellen wir das Datenbankschema:
+```bash
+knex migrate:make initial
+```
+
+In der generierten Datei den Code für das Erstellen der `todo`-Tabelle einfügen:
+```js
+exports.up = async function(knex) {
+  await knex.schema.createTable('todo', (table) => {
+    table.increments('id')
+    table.text('text').notNullable()
+    table.boolean('done').defaultTo(false).notNullable()
+  })
+};
+
+exports.down = async function(knex) {
+  await knex.schema.dropTable('todo')
+};
+```
+
+Die Datenbank anlegen:
+```bash
+knex migrate:latest
+```
+
+---
+## Back-End initialisieren
+
+Express installieren:
+```bash
+npm install --save express
+```
+
+Die Datei `index.js` mit folgendem Inhalt anlegen:
+```js
+const express = require('express')
+const knex = require('./db/knex.js')
+const app = express()
+app.use(express.json())
+
+app.get('/api', (req, res) => {
+  res.send('Welcome to Todo-API')
+})
+
+app.listen(3000, () => console.log("Listening on port 3000"))
+```
+
+Das Back-End laufen lassen:
+```bash
+nodemon
+```
+
+Im Browser die Antwort auf http://localhost:8080/api überprüfen.
+
+---
+## Backend programmieren (1)
+
+Vor der Zeile mit `app.listen(...)` fügen wir nun die _Endpoints_ unseres APIs ein:
+
+1\. Alle Todo-Items auflisten:
+
+```js
+app.get('/api/todo', async (req, res) =>{
+  let results = await knex('todo')
+  res.json(results)
+})
+```
+
+2\. Ein neues Todo hinzufügen:
+```js
+app.post('/api/todo', async (req, res) =>{
+  let results = await knex('todo')
+                      .insert({text: req.body.text})
+  res.json(results)
+})
+```
+---
+## Backend programmieren (2)
+
+3\. Ein existierendes Todo updaten:
+```js
+app.put('/api/todo/:id', async (req, res) =>{
+  let results = await knex('todo')
+                      .update({done: req.body.done})
+                      .where('id', req.params.id)
+  res.json(results)
+})
+```
+4\. Ein existierendes Todo löschen:
+```js
+app.delete('/api/todo/:id', async (req, res) =>{
+  let results = await knex('todo')
+                      .where('id', req.params.id)
+                      .del()
+  res.json(results)
+})
+```
+
+---
+## Front-End mit Back-End verbinden
+
+Zuerst brauchen wir im Front-End das `axios`-Paket:
+
+```bash
+cd ..
+cd todo-ui
+npm install --save axios
+```
+
+... und importieren es in der `src/App.vue`-Datei:
+```js
+import axios from 'axios'
+```
+
+---
+## Existierende Todo-Einträge laden
+
+Wir fügen eine `created`-Methode zu unserer App hinzu. Sie wird beim Laden der Vue-App aufgerufen, und soll dann vom API die Liste mit den existierenden Todos laden:
+
+```js
+async created() {
+  let response = await axios.get('/api/todo')
+  this.todos = response.data
+},
+```
+
+---
+## Neuer Todo-Eintrag anlegen
+
+Damit die neuen Todos in der Datenbank landen, müssen wir die `addTodo`-Methode anpassen:
+
+```js
+async addTodo() {
+  let todo = {
+    text: this.newTodo,
+    done: false
+  }
+  this.todos.push(todo)
+  this.newTodo = ''
+  let result = await axios.post('/api/todo', {text: todo.text})
+  todo.id = result.data[0]
+},
+```
+
+Es ist etwas kompliziert, da wir die Antwort des Servers abwarten müssen, um die neue ID des Todos in unserem Todo-Objekt abspeichern zu können. Diese ID benötigen wir beim Updaten und Löschen des Eintrags.
+
+Damit alles korrekt funktioniert, müssen wir die Methode noch mit `async` markieren.
+
+---
+## Todo auf erledigt setzen
+
+Den Status eines Todos kann man ändern. Wir ändern dazu die `toggleTodo`-Methode:
+```js
+async toggleTodo(todo) {
+  todo.done = !todo.done
+  await axios.put(`/api/todo/${todo.id}`, {done: todo.done})
+},
+```
+
+---
+## Ein Todo-Eintrag löschen
+
+Und schliesslich wollen wir, dass gelöschte Todos auch wirklich aus der Datenbank entfernt werden:
+```js
+async deleteTodo(index) {
+  let todo = this.todos[index]
+  this.todos.splice(index, 1)
+  await axios.delete(`/api/todo/${todo.id}`)
+}
+```
+
+---
+class: center, middle
+
+# Ende
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
