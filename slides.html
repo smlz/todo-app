@@ -301,6 +301,8 @@ module.exports = require('knex')(config);
 },
 ```
 
+Die REPL mit aufgebauter Datenbankverbindung kann jetzt mit `npm run repl` aufgerufen werden.
+
 ---
 ## Datenbankschema
 
@@ -405,7 +407,7 @@ app.delete('/api/todo/:id', async (req, res) =>{
 ---
 ## Front-End mit Back-End verbinden
 
-Zuerst brauchen wir im Front-End das `axios`-Paket:
+Um Requests auf das API machen zu können, brauchen wir im Front-End das `axios`-Paket:
 
 ```bash
 cd ..
@@ -421,13 +423,17 @@ import axios from 'axios'
 ---
 ## Existierende Todo-Einträge laden
 
-Wir fügen eine `created`-Methode zu unserer App hinzu. Sie wird beim Laden der Vue-App aufgerufen, und soll dann vom API die Liste mit den existierenden Todos laden:
+Wir fügen zu unserer Vue-App den `created`-Callback hinzu. Diese Funktion befindet sich auf der selben Ebene wie `methods` und `data`. Sie wird beim Laden der Vue-App aufgerufen, und soll dann vom API die Liste mit den existierenden Todos laden:
 
 ```js
-async created() {
-  let response = await axios.get('/api/todo')
-  this.todos = response.data
-},
+  data() { ... },
+  methods: {
+    ...
+  },
+  async created() {
+    let response = await axios.get('/api/todo')
+    this.todos = response.data
+  },
 ```
 
 ---
@@ -469,9 +475,9 @@ async toggleTodo(todo) {
 Und schliesslich wollen wir, dass gelöschte Todos auch wirklich aus der Datenbank entfernt werden:
 ```js
 async deleteTodo(index) {
-  let todo = this.todos[index]
+  let todo_id = this.todos[index].id
   this.todos.splice(index, 1)
-  await axios.delete(`/api/todo/${todo.id}`)
+  await axios.delete(`/api/todo/${todo_id}`)
 }
 ```
 
