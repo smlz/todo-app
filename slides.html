@@ -285,7 +285,7 @@ development: {
 
 Die zwei folgenden Helferlein sind praktisch.
 
-1\. Die Verbindung zur Datenbank in `db/knex.js`:
+1\. Die Verbindung zur Datenbank in `db/index.js`:
 
 ```js
 const environment = process.env.ENVIRONMENT || 'development'
@@ -297,7 +297,7 @@ module.exports = require('knex')(config);
 
 ```json
 "scripts": {
-  "repl": "node -e \"let knex = require('./db/knex.js')\" --experimental-repl-await -i"
+  "repl": "node -e \"let knex = require('./db')\" --experimental-repl-await -i"
 },
 ```
 
@@ -342,7 +342,7 @@ npm install --save express
 Die Datei `index.js` mit folgendem Inhalt anlegen:
 ```js
 const express = require('express')
-const knex = require('./db/knex.js')
+const knex = require('./db')
 const app = express()
 app.use(express.json())
 

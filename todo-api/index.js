@@ -1,5 +1,5 @@
 const express = require('express')
-const knex = require('./db/knex.js')
+const knex = require('./db')
 const app = express()
 app.use(express.json())
 

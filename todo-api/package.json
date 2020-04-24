@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "repl": "node -e \"let knex = require('./db/knex.js')\" --experimental-repl-await -i"
+    "repl": "node -e \"let knex = require('./db')\" --experimental-repl-await -i"
   },
   "author": "",
   "license": "ISC",
