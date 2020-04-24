@@ -252,6 +252,19 @@ npm init
 Beim letzten Kommando können wir mit der Enter-Taste alle Defaulteinstellungen übernehmen.
 
 ---
+## Zusätzliche Tools installieren
+
+Für das Back-End brauchen wir zwei zusätzliche Tools, welche wir als Kommandos
+aufrufen wollen, und daher global installieren müssen:
+```bash
+npm install --global knex nodemon
+```
+
+Mit `knex` verwalten wir die Datenbank. `nodemon` benötigen wir als
+Entwicklungsserver für das Back-End, welcher Dateien automatisch neu lädt,
+sobald wir sie abspeichern.
+
+---
 ## Datenbank konfigurieren
 
 Für den Datenbankzugriff brauchen wir zwei Pakete und das `knexfile.js`:
